@@ -1,0 +1,21 @@
+{
+  "name": "ecoeyes",
+  "version": "1.0.0",
+  "description": "A simple Astro app to display greenhouse emissions by country",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "keywords": ["astro", "greenhouse", "emissions", "climate"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.11.0",
+    "typescript": "^5.8.3"
+  }
+}

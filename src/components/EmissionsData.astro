@@ -1,0 +1,139 @@
+---
+// This component displays greenhouse emissions data passed as props
+export interface Props {
+  emissionsData: any[];
+  error?: string;
+  year?: string;
+}
+
+const { emissionsData, error, year } = Astro.props;
+
+// Calculate statistics if we have data
+let stats = null;
+if (emissionsData && emissionsData.length > 0) {
+  const totalEmissions = emissionsData.reduce((sum: number, item: any) => sum + item.value, 0);
+  const avgEmissions = totalEmissions / emissionsData.length;
+  
+  stats = {
+    totalCountries: emissionsData.length,
+    totalEmissions: (totalEmissions / 1000000).toFixed(1), // Convert to millions
+    avgEmissions: (avgEmissions / 1000).toFixed(0), // Convert to thousands
+    year: year || '2020'
+  };
+}
+---
+
+<div id="emissions-container">
+  {error ? (
+    <div class="error">
+      {error}
+    </div>
+  ) : emissionsData && emissionsData.length > 0 ? (
+    <div id="emissions-data">
+      {stats && (
+        <div class="stats-summary">
+          <div class="year-info">Data from {stats.year} (most recent available)</div>
+          <div class="stat-item">
+            <span class="stat-value">{stats.totalCountries}</span>
+            <span class="stat-label">Countries</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{stats.totalEmissions}M</span>
+            <span class="stat-label">Total Kt CO₂</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{stats.avgEmissions}K</span>
+            <span class="stat-label">Avg Kt CO₂</span>
+          </div>
+        </div>
+      )}
+      
+      <div class="countries-grid">
+        {emissionsData.map((item: any) => (
+          <div class="country-card">
+            <div class="country-name">{item.country.value}</div>
+            <div class="emissions-value">
+              <span class="emissions-number">{item.value.toLocaleString()}</span> kilotons CO₂
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div class="loading">
+      Loading greenhouse emissions data...
+    </div>
+  )}
+</div>
+
+<style>
+  .countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .country-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #4a7c59;
+  }
+  
+  .country-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2d5a27;
+    margin-bottom: 0.5rem;
+  }
+  
+  .emissions-value {
+    font-size: 1.1rem;
+    color: #666;
+  }
+  
+  .emissions-number {
+    font-weight: bold;
+    color: #d63384;
+  }
+  
+  .stats-summary {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .stat-item {
+    display: inline-block;
+    margin: 0 2rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2d5a27;
+    display: block;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .year-info {
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #1565c0;
+    font-weight: 500;
+  }
+</style>

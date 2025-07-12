@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EmissionsData from '../components/EmissionsData.astro';
+import { mockEmissionsData } from '../data/mockData';
+
+// Fetch emissions data server-side to avoid CORS issues
+let emissionsData: any[] = [];
+let error = '';
+let year = '';
+let usingMockData = false;
+
+try {
+  // World Bank API endpoint for CO2 emissions (latest available data)
+  const response = await fetch('https://api.worldbank.org/v2/country/all/indicator/EN.ATM.CO2E.KT?format=json&date=2020&per_page=300');
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch data from World Bank API');
+  }
+  
+  const data = await response.json();
+  
+  if (!data || data.length < 2) {
+    throw new Error('Invalid data format received');
+  }
+  
+  // The API returns an array where the first element is metadata and second is data
+  const rawEmissionsData = data[1];
+  
+  if (!rawEmissionsData || rawEmissionsData.length === 0) {
+    throw new Error('No emissions data available');
+  }
+  
+  // Filter out null values and sort by emissions (descending)
+  emissionsData = rawEmissionsData
+    .filter((item: any) => item && item.value !== null && item.country && item.country.value)
+    .sort((a: any, b: any) => b.value - a.value);
+  
+  if (emissionsData.length === 0) {
+    throw new Error('No valid emissions data found');
+  }
+  
+  // Get the year from the first data point
+  year = emissionsData[0]?.date || '2020';
+  
+} catch (err) {
+  console.error('Error fetching emissions data:', err);
+  console.log('Using mock data as fallback...');
+  
+  // Use mock data as fallback
+  emissionsData = mockEmissionsData.sort((a: any, b: any) => b.value - a.value);
+  year = '2020';
+  usingMockData = true;
+}
+---
+
+<Layout title="EcoEyes - Global Greenhouse Emissions">
+  <div class="intro">
+    <h2>Global CO₂ Emissions by Country</h2>
+    <p>
+      This page displays greenhouse gas emissions data from countries around the world, 
+      sourced from the World Bank's open data API. The data shows CO₂ emissions measured 
+      in kilotons, helping to visualize each country's contribution to global climate change.
+    </p>
+    {usingMockData && (
+      <div class="mock-data-notice">
+        <strong>Note:</strong> Currently displaying sample data from top emitting countries. 
+        In a production environment, this would fetch live data from the World Bank API.
+      </div>
+    )}
+  </div>
+  
+  <EmissionsData emissionsData={emissionsData} error={error} year={year} />
+</Layout>
+
+<style>
+  .intro {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .intro h2 {
+    color: #2d5a27;
+    margin-bottom: 1rem;
+  }
+  
+  .intro p {
+    color: #666;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .mock-data-notice {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+</style>
