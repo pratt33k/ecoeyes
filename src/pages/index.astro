@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EmissionsData from '../components/EmissionsData.astro';
+---
+
+<Layout title="EcoEyes - Global Greenhouse Emissions">
+  <div class="intro">
+    <h2>Global CO₂ Emissions by Country</h2>
+    <p>
+      This page displays greenhouse gas emissions data from countries around the world, 
+      sourced from the World Bank's open data API. The data shows CO₂ emissions measured 
+      in kilotons, helping to visualize each country's contribution to global climate change.
+    </p>
+  </div>
+  
+  <EmissionsData />
+</Layout>
+
+<style>
+  .intro {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .intro h2 {
+    color: #2d5a27;
+    margin-bottom: 1rem;
+  }
+  
+  .intro p {
+    color: #666;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+</style>

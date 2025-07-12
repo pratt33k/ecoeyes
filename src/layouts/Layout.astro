@@ -1,0 +1,67 @@
+---
+export interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Greenhouse emissions data by country" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #2d5a27;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .header {
+        background-color: #4a7c59;
+        color: white;
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+      }
+      .loading {
+        text-align: center;
+        padding: 2rem;
+        font-size: 1.2rem;
+        color: #666;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin: 1rem 0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <h1>{title}</h1>
+      </div>
+    </header>
+    <main class="container">
+      <slot />
+    </main>
+  </body>
+</html>

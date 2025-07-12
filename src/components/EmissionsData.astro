@@ -1,0 +1,174 @@
+---
+// This component will fetch and display greenhouse emissions data
+// Using World Bank API for CO2 emissions data
+---
+
+<div id="emissions-container">
+  <div class="loading" id="loading">
+    Loading greenhouse emissions data...
+  </div>
+  <div id="emissions-data" style="display: none;">
+    <div class="stats-summary" id="stats-summary"></div>
+    <div class="countries-grid" id="countries-grid"></div>
+  </div>
+  <div class="error" id="error" style="display: none;">
+    Failed to load emissions data. Please try again later.
+  </div>
+</div>
+
+<style>
+  .countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .country-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #4a7c59;
+  }
+  
+  .country-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2d5a27;
+    margin-bottom: 0.5rem;
+  }
+  
+  .emissions-value {
+    font-size: 1.1rem;
+    color: #666;
+  }
+  
+  .emissions-number {
+    font-weight: bold;
+    color: #d63384;
+  }
+  
+  .stats-summary {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .stat-item {
+    display: inline-block;
+    margin: 0 2rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2d5a27;
+    display: block;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .year-info {
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #1565c0;
+    font-weight: 500;
+  }
+</style>
+
+<script>
+  async function fetchEmissionsData() {
+    const loadingEl = document.getElementById('loading');
+    const dataEl = document.getElementById('emissions-data');
+    const errorEl = document.getElementById('error');
+    const statsEl = document.getElementById('stats-summary');
+    const gridEl = document.getElementById('countries-grid');
+
+    try {
+      // World Bank API endpoint for CO2 emissions (latest available data)
+      const response = await fetch('https://api.worldbank.org/v2/country/all/indicator/EN.ATM.CO2E.KT?format=json&date=2020&per_page=300');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      
+      const data = await response.json();
+      
+      if (!data || data.length < 2) {
+        throw new Error('Invalid data format');
+      }
+      
+      // The API returns an array where the first element is metadata and second is data
+      const emissionsData = data[1];
+      
+      if (!emissionsData || emissionsData.length === 0) {
+        throw new Error('No emissions data available');
+      }
+      
+      // Filter out null values and sort by emissions (descending)
+      const validData = emissionsData
+        .filter(item => item && item.value !== null && item.country && item.country.value)
+        .sort((a, b) => b.value - a.value);
+      
+      if (validData.length === 0) {
+        throw new Error('No valid emissions data found');
+      }
+      
+      // Calculate statistics
+      const totalEmissions = validData.reduce((sum, item) => sum + item.value, 0);
+      const avgEmissions = totalEmissions / validData.length;
+      const topEmitter = validData[0];
+      
+      // Display statistics
+      statsEl.innerHTML = `
+        <div class="year-info">Data from ${validData[0].date || '2020'} (most recent available)</div>
+        <div class="stat-item">
+          <span class="stat-value">${validData.length}</span>
+          <span class="stat-label">Countries</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">${(totalEmissions / 1000000).toFixed(1)}M</span>
+          <span class="stat-label">Total Kt CO₂</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">${(avgEmissions / 1000).toFixed(0)}K</span>
+          <span class="stat-label">Avg Kt CO₂</span>
+        </div>
+      `;
+      
+      // Display countries data
+      gridEl.innerHTML = validData.map(item => `
+        <div class="country-card">
+          <div class="country-name">${item.country.value}</div>
+          <div class="emissions-value">
+            <span class="emissions-number">${item.value.toLocaleString()}</span> kilotons CO₂
+          </div>
+        </div>
+      `).join('');
+      
+      // Hide loading and show data
+      loadingEl.style.display = 'none';
+      dataEl.style.display = 'block';
+      
+    } catch (error) {
+      console.error('Error fetching emissions data:', error);
+      loadingEl.style.display = 'none';
+      errorEl.style.display = 'block';
+    }
+  }
+
+  // Fetch data when the component loads
+  fetchEmissionsData();
+</script>
